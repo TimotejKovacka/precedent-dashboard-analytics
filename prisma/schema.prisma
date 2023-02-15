@@ -1,26 +1,31 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  memberships                Membership[]
+  authored_tasks             Task[]
+  assigned_tasks             AccountsOnTasks[] @relation("WorkingTask")
+  assigned_accounts_to_tasks AccountsOnTasks[] @relation("AssignedBy")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -34,6 +39,7 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
@@ -53,4 +59,60 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  memberships Membership[]
+  projects    Project[]
+}
+
+model Membership {
+  accountId  String
+  teamId     String
+  account    Account  @relation(fields: [accountId], references: [id])
+  team       Team     @relation(fields: [teamId], references: [id])
+  assignedAt DateTime @default(now())
+
+  @@id([accountId, teamId])
+}
+
+model Project {
+  id            String       @id @default(cuid())
+  name          String
+  description   String
+  teamId        String
+  project_state ProjectState @default(WAITING)
+  team          Team         @relation(fields: [teamId], references: [id])
+  tasks         Task[]
+}
+
+model Task {
+  id        String            @id @default(cuid())
+  name      String
+  projectId String
+  authorId  String
+  assignees AccountsOnTasks[]
+  project   Project           @relation(fields: [projectId], references: [id])
+  author    Account           @relation(fields: [authorId], references: [id])
+  createdAt DateTime          @default(now())
+}
+
+model AccountsOnTasks {
+  task       Task     @relation(fields: [taskId], references: [id])
+  taskId     String
+  account    Account  @relation("WorkingTask", fields: [accountId], references: [id])
+  accountId  String
+  assignedAt DateTime @default(now())
+  author     Account  @relation("AssignedBy", fields: [authorId], references: [id])
+  authorId   String
+
+  @@id([taskId, accountId, authorId])
+}
+
+enum ProjectState {
+  WAITING
+  IN_PROGRESS
+  COMPLETED
 }

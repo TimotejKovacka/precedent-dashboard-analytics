@@ -8,8 +8,10 @@
     "paths": {
       "@/components/*": ["components/*"],
       "@/pages/*": ["pages/*"],
-      "@/lib/*": ["lib/*"],
-      "@/styles/*": ["styles/*"]
+      "@/lib/*": ["src/lib/*"],
+      "@/styles/*": ["styles/*"],
+      "@/server/*": ["src/server/*"],
+      "@/types/*": ["types/*"]
     },
     "strict": true,
     "forceConsistentCasingInFileNames": true,
