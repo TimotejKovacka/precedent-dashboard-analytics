@@ -15,7 +15,6 @@ export interface TeamDashboardProps {
 
 export default function TeamDashboard({ teamId }: TeamDashboardProps) {
   const { data: session, status } = useSession();
-  if (!session || !session.user) return <></>;
   const teams = trpc.team.list.useQuery({});
   const [openPopover, setOpenPopover] = useState(false);
   const projects = trpc.project.listByTeam.useQuery({ teamId: teamId });
@@ -91,7 +90,7 @@ export default function TeamDashboard({ teamId }: TeamDashboardProps) {
         100,
     ) || 0;
 
-  return (
+  return session ? (
     <motion.div
       className="flex h-[calc(100vh-4rem)] w-full flex-col gap-2 px-1 sm:px-2 md:flex-row md:px-4"
       initial="hidden"
@@ -203,5 +202,7 @@ export default function TeamDashboard({ teamId }: TeamDashboardProps) {
         </DragDropContext>
       </div>
     </motion.div>
+  ) : (
+    <></>
   );
 }
