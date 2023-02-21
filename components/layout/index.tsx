@@ -93,6 +93,7 @@ export default function Layout({
                           className="flex items-center font-display text-2xl"
                           key={index}
                           target="_blank"
+                          rel="noopener noreferrer"
                         >
                           <item.icon className="h-7 w-7" />
                         </a>

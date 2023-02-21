@@ -5,31 +5,21 @@ import { ChevronRight, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useDebouncedCallback } from "use-debounce";
+import Link from "next/link";
 
 export default function WelcomeTeamSelect() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debounced = useDebouncedCallback((value) => setSearchQuery(value), 200);
 
-  if (!session || !session.user) {
-    return <></>;
-  }
-
   useEffect(() => {
     searchRef.current?.focus();
   });
 
-  const pushQueryParam = (id: string) => {
-    router.push({ pathname: "/", query: { teamId: id } }, undefined, {
-      shallow: true,
-    });
-  };
-
   const teams = trpc.team.list.useQuery({ userId: session.user.id });
 
-  return (
+  return session ? (
     <div className="flex h-[calc(100vh_-_64px)] w-full items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-100">
       <motion.div className="flex h-3/4 w-full flex-col md:w-3/4">
         <div className="relative m-4 rounded-md bg-white">
@@ -51,20 +41,23 @@ export default function WelcomeTeamSelect() {
             .filter((item) => item.name.toLowerCase().includes(searchQuery))
             .map((item, index) => (
               <>
-                <button
-                  type="button"
-                  title={item.name}
-                  onClick={() => pushQueryParam(item.id)}
+                <Link
+                  href={{
+                    pathname: "dashboard",
+                    query: { teamdId: item.id },
+                  }}
                   className="border-1 mt-3 flex w-full items-center justify-between rounded-md p-2 transition-all first-of-type:mt-0 hover:bg-slate-200 focus:bg-slate-200 active:bg-slate-200"
                 >
                   <span>{item.name}</span>
                   <ChevronRight />
-                </button>
+                </Link>
                 <hr className="my-8 h-px border-0 bg-gray-200 last-of-type:hidden dark:bg-gray-700" />
               </>
             ))}
         </div>
       </motion.div>
     </div>
+  ) : (
+    <></>
   );
 }
